@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaletteCraft – Генератор палітр</title>
+  <link rel="stylesheet" href="src/css/main.css">
+  <link rel="stylesheet" href="src/css/modals.css">
+  <link rel="icon" type="image/png" href="./src/images/favicon.png">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-top">
+        <div>
+          <h1 data-i18n="appTitle">PaletteCraft</h1>
+          <p class="subtitle" data-i18n="appSubtitle">Створюйте красиві кольорові комбінації одним кліком</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <!-- Language Selector -->
+          <select id="languageSelect" class="language-select" aria-label="Select language">
+            <option value="ua">🇺🇦 UA</option>
+            <option value="ru">🇷🇺 RU</option>
+            <option value="en">🇬🇧 EN</option>
+          </select>
+          <button id="themeToggle" class="btn-icon theme-toggle" data-i18n-title="themeToggle" title="Змінити тему">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Main Palette -->
+    <div id="palette" class="palette"></div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <!-- History Controls -->
+      <div class="history-controls">
+        <button id="undoBtn" class="btn-icon" data-i18n-title="undo" title="Назад (Ctrl+Z)" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path>
+          </svg>
+        </button>
+        <button id="redoBtn" class="btn-icon" data-i18n-title="redo" title="Вперед (Ctrl+Y)" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 7v6h-6"></path>
+            <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Color Count Selector -->
+      <div class="color-count-selector">
+        <label for="colorCount" data-i18n="colorsLabel">Кольорів:</label>
+        <select id="colorCount" class="count-select">
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+        </select>
+      </div>
+
+      <select id="modeSelect" class="mode-select">
+        <option value="random" data-i18n="modeRandom">Випадкова</option>
+        <option value="monochrome" data-i18n="modeMonochrome">Монохромна</option>
+        <option value="analogous" data-i18n="modeAnalogous">Аналогова</option>
+        <option value="complementary" data-i18n="modeComplementary">Комплементарна</option>
+        <option value="triadic" data-i18n="modeTriadic">Тріадна</option>
+        <option value="tetradic" data-i18n="modeTetradic">Тетрадна</option>
+        <option value="split-complementary" data-i18n="modeSplitComplementary">Розділена комплементарна</option>
+        <option value="square" data-i18n="modeSquare">Квадратна</option>
+        <option value="pastel" data-i18n="modePastel">Пастельні</option>
+        <option value="dark" data-i18n="modeDark">Темні</option>
+        <option value="neon" data-i18n="modeNeon">Неонові</option>
+        <option value="earth" data-i18n="modeEarth">Земляні тони</option>
+        <option value="gradient" data-i18n="modeGradient">Градієнт</option>
+        <option value="image" data-i18n="modeImage">З зображення</option>
+      </select>
+      <input type="file" id="imageInput" accept="image/*" style="display: none;">
+      <button id="uploadBtn" class="btn btn-secondary" style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span data-i18n="uploadImage">Завантажити зображення</span>
+      </button>
+      <button id="generateBtn" class="btn btn-primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <span data-i18n="newPalette">Нова палітра</span> (Space)
+      </button>
+      <button id="analyzeBtn" class="btn btn-info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <line x1="11" y1="8" x2="11" y2="14"></line>
+          <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+        <span data-i18n="analyze">Аналіз</span>
+      </button>
+      <button id="previewBtn" class="btn btn-info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span data-i18n="preview">Попередній перегляд</span>
+      </button>
+      <button id="shareBtn" class="btn btn-info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        <span data-i18n="share">Поділитися</span>
+      </button>
+      <button id="urlExtractBtn" class="btn btn-info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+        <span data-i18n="fromUrl">З URL</span>
+      </button>
+      <button id="accessibilityBtn" class="btn btn-info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 16v-4"></path>
+          <path d="M12 8h.01"></path>
+        </svg>
+        <span data-i18n="accessibility">Доступність</span>
+      </button>
+      <button id="trendsBtn" class="btn btn-info">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        <span data-i18n="trends">Тренди</span>
+      </button>
+      <button id="saveBtn" class="btn btn-success">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span data-i18n="save">Зберегти</span>
+      </button>
+      <button id="exportBtn" class="btn btn-purple">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span data-i18n="export">Експорт</span>
+      </button>
+    </div>
+
+    <!-- History Panel -->
+    <div id="historyPanel" class="history-panel">
+      <div class="history-header">
+        <h3 data-i18n="historyTitle">Історія палітр</h3>
+        <button id="closeHistory" class="btn-icon-small">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+
+    <!-- Saved Palettes -->
+    <div id="savedSection" class="saved-section" style="display: none;">
+      <div class="saved-header">
+        <h2 data-i18n="savedPalettes">Збережені палітри</h2>
+        <div class="saved-controls">
+          <input type="text" id="searchPalettes" class="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="Пошук за назвою або тегом...">
+          <select id="sortPalettes" class="sort-select">
+            <option value="date-desc" data-i18n="sortNewest">Нові спочатку</option>
+            <option value="date-asc" data-i18n="sortOldest">Старі спочатку</option>
+            <option value="name-asc" data-i18n="sortNameAsc">За назвою (А-Я)</option>
+            <option value="name-desc" data-i18n="sortNameDesc">За назвою (Я-А)</option>
+          </select>
+        </div>
+      </div>
+      <div id="savedPalettes" class="saved-palettes"></div>
+    </div>
+  </div>
+
+  <!-- Color Picker Modal -->
+  <div id="colorPickerModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="editColorTitle">Редагувати колір</h3>
+        <button class="modal-close" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="color-preview" id="colorPreview"></div>
+        <div class="picker-group">
+          <label>HEX</label>
+          <input type="text" id="hexInput" class="color-input" placeholder="#000000">
+        </div>
+        <div class="picker-group">
+          <label data-i18n="hueLabel">Відтінок (Hue)</label>
+          <input type="range" id="hueSlider" min="0" max="360" value="0" class="slider">
+          <span id="hueValue">0</span>
+        </div>
+        <div class="picker-group">
+          <label data-i18n="saturationLabel">Насиченість (Saturation)</label>
+          <input type="range" id="satSlider" min="0" max="100" value="50" class="slider">
+          <span id="satValue">50%</span>
+        </div>
+        <div class="picker-group">
+          <label data-i18n="lightnessLabel">Яскравість (Lightness)</label>
+          <input type="range" id="lightSlider" min="0" max="100" value="50" class="slider">
+          <span id="lightValue">50%</span>
+        </div>
+        <div class="color-values">
+          <div>
+            <strong>RGB:</strong> <span id="rgbValue">0, 0, 0</span>
+          </div>
+          <div>
+            <strong>HSL:</strong> <span id="hslValue">0°, 0%, 0%</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelBtn" data-i18n="cancel">Скасувати</button>
+        <button class="btn btn-primary" id="applyBtn" data-i18n="apply">Застосувати</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Palette Modal -->
+  <div id="savePaletteModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="savePaletteTitle">Зберегти палітру</h3>
+        <button class="modal-close" id="closeSaveModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="picker-group">
+          <label data-i18n="paletteNameLabel">Назва палітри</label>
+          <input type="text" id="paletteName" class="color-input" data-i18n-placeholder="paletteNamePlaceholder" placeholder="Моя чудова палітра">
+        </div>
+        <div class="picker-group">
+          <label data-i18n="tagsLabel">Теги (розділіть комами)</label>
+          <input type="text" id="paletteTags" class="color-input" data-i18n-placeholder="tagsPlaceholder" placeholder="природа, синій, свіжість">
+        </div>
+        <div class="save-preview">
+          <div id="savePreviewColors" class="saved-colors"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelSaveBtn" data-i18n="cancel">Скасувати</button>
+        <button class="btn btn-success" id="confirmSaveBtn" data-i18n="saveBtn">Зберегти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analysis Modal -->
+  <div id="analysisModal" class="modal">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h3 data-i18n="analysisTitle">Аналіз палітри</h3>
+        <button class="modal-close" id="closeAnalysisModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="analysisContent" class="analysis-content"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeAnalysisBtn" data-i18n="close">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="modal">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h3 data-i18n="previewTitle">Попередній перегляд UI</h3>
+        <button class="modal-close" id="closePreviewModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="previewContent" class="preview-content"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closePreviewBtn" data-i18n="close">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="exportModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="exportTitle">Експорт палітри</h3>
+        <button class="modal-close" id="closeExportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-tabs">
+          <button class="tab-btn active" data-format="css">CSS</button>
+          <button class="tab-btn" data-format="scss">SCSS</button>
+          <button class="tab-btn" data-format="json">JSON</button>
+          <button class="tab-btn" data-format="tailwind">Tailwind</button>
+          <button class="tab-btn" data-format="svg">SVG</button>
+        </div>
+        <div class="export-content">
+          <pre id="exportCode"></pre>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeExportBtn" data-i18n="close">Закрити</button>
+        <button class="btn btn-primary" id="copyExportBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span data-i18n="copy">Копіювати</span>
+        </button>
+        <button class="btn btn-success" id="downloadExportBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span data-i18n="download">Завантажити</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="shareTitle">Поділитися палітрою</h3>
+        <button class="modal-close" id="closeShareModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="save-preview">
+          <div id="sharePreviewColors" class="saved-colors"></div>
+        </div>
+        <div class="picker-group">
+          <label data-i18n="shareLinkLabel">Посилання на палітру</label>
+          <div class="share-link-group">
+            <input type="text" id="shareLink" class="color-input" readonly>
+            <button class="btn btn-primary" id="copyShareLink">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span data-i18n="copy">Копіювати</span>
+            </button>
+          </div>
+        </div>
+        <div class="qr-code-section">
+          <h4 data-i18n="qrCodeTitle">QR-код</h4>
+          <div id="qrCode" class="qr-code"></div>
+          <button class="btn btn-primary" id="downloadQR">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span data-i18n="downloadQR">Завантажити QR</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeShareBtn" data-i18n="close">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL Extract Modal -->
+  <div id="urlExtractModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="urlExtractTitle">Витягнути кольори з сайту</h3>
+        <button class="modal-close" id="closeUrlModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="picker-group">
+          <label data-i18n="websiteUrlLabel">URL веб-сайту</label>
+          <input type="text" id="websiteUrl" class="color-input" data-i18n-placeholder="websiteUrlPlaceholder" placeholder="https://example.com">
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.875rem;" data-i18n="urlExtractInfo">Введіть URL сайту для витягування кольорів з його дизайну</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeUrlExtractBtn" data-i18n="cancel">Скасувати</button>
+        <button class="btn btn-primary" id="extractUrlBtn" data-i18n="extractColors">Витягнути кольори</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility Modal -->
+  <div id="accessibilityModal" class="modal">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h3 data-i18n="accessibilityTitle">Перевірка доступності</h3>
+        <button class="modal-close" id="closeAccessibilityModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="accessibility-controls">
+          <label data-i18n="colorBlindType">Тип дальтонізму:</label>
+          <select id="colorBlindType" class="mode-select">
+            <option value="normal" data-i18n="normalVision">Нормальний зір</option>
+            <option value="protanopia" data-i18n="protanopia">Протанопія</option>
+            <option value="deuteranopia" data-i18n="deuteranopia">Дейтеранопія</option>
+            <option value="tritanopia" data-i18n="tritanopia">Тританопія</option>
+            <option value="achromatopsia" data-i18n="achromatopsia">Ахроматопсія</option>
+          </select>
+        </div>
+        <div id="accessibilityContent" class="accessibility-content"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeAccessibilityBtn" data-i18n="close">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trends Modal -->
+  <div id="trendsModal" class="modal">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h3 data-i18n="trendsTitle">Тренди та натхнення</h3>
+        <button class="modal-close" id="closeTrendsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="trendsContent" class="trends-content"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeTrendsBtn" data-i18n="close">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="src/js/i18n.js"></script>
+  <script src="src/js/utils.js"></script>
+  <script src="src/js/ui.js"></script>
+  <script src="src/js/main.js"></script>
+</body>
+</html>
